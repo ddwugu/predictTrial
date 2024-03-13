@@ -29,64 +29,55 @@ url_field_1 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_I
 # URL untuk mengakses data dari ThingSpeak untuk field 2
 url_field_2 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_2}.csv?api_key={READ_API_KEY}'
 
-# Mendownload data CSV untuk field 1
-response_field_1 = requests.get(url_field_1)
-
-# Mendownload data CSV untuk field 2
-response_field_2 = requests.get(url_field_2)
-
-# Menyimpan data CSV ke dalam DataFrame
-if response_field_1.status_code == 200 and response_field_2.status_code == 200:
-    data_field_1 = pd.read_csv(url_field_1)
-    data_field_2 = pd.read_csv(url_field_2)
-    print("Data berhasil diunduh")
-else:
-    print("Gagal mengunduh data. Periksa kembali API key dan Channel ID Anda.")
-
 # Ambil nilai pertama dari kolom 'field1' dan 'field3'
-Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else None
-Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else None
+def fetch_data():
+    response_field_1 = requests.get(url_field_1)
+    response_field_2 = requests.get(url_field_2)
+    if response_field_1.status_code == 200 and response_field_2.status_code == 200:
+        data_field_1 = pd.read_csv(url_field_1)
+        data_field_2 = pd.read_csv(url_field_2)
+        Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else None
+        Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else None
+        return Titik_1_PSI, Titik_2_PSI
+    else:
+        return None, None
 
-# Menampilkan nilai "Titik_1_PSI" dan "Titik_2_PSI"
+# Code prediction
+def predict_location():
+    Titik_1_PSI, Titik_2_PSI = fetch_data()
+    if Titik_1_PSI is not None and Titik_2_PSI is not None:
+        try:
+            a = 135 - float(Titik_1_PSI)
+            b = 86 - float(Titik_2_PSI)
+            prediksi_lokasi = LokasiKM.predict([[a, b]])
+            if prediksi_lokasi[0] == 0: # titik nol
+                suspect_loct = 'It is safe that there is no fluid flowing'
+            elif prediksi_lokasi[0] >= 26.3: # total panjang trunkline
+                suspect_loct = 'Safe, there are no'
+            else:
+                suspect_loct = f'!!!estimated  location {prediksi_lokasi[0]} KM'
+            st.success(suspect_loct)
+        except Exception as e:
+            st.error(f"Error predicting location: {e}")
+
+# Display values of Titik_1_PSI and Titik_2_PSI
+Titik_1_PSI, Titik_2_PSI = fetch_data()
 if Titik_1_PSI is not None and Titik_2_PSI is not None:
     st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
     st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
 else:
     st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
 
-# Code prediction
-suspect_loct = ''
-
-# JavaScript to automatically click the "Prediksi Lokasi" button
-auto_click_script = """
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const button = document.querySelector("button[data-testid='stStreamlitButton']");
-    button.click();
-});
-</script>
-"""
-
-# Prediction Button (hidden)
+# Prediction Button
 if LokasiKM is not None:
-    try:
-        if st.button('Prediksi Lokasi', key='predict_button'):
-            # Cek jika Titik_1_PSI atau Titik_2_PSI adalah nilai kosong atau NaN
-            if pd.isnull(Titik_1_PSI) or pd.isnull(Titik_2_PSI):
-                st.warning("Salah satu atau kedua nilai 'Titik_1_PSI' dan 'Titik_2_PSI' kosong atau NaN.")
-            else:
-                a = 135 - float(Titik_1_PSI)
-                b = 86 - float(Titik_2_PSI)
-                prediksi_lokasi = LokasiKM.predict([[a, b]])
-                if prediksi_lokasi[0] == 0: # titik nol
-                    suspect_loct = 'It is safe that there is no fluid flowing'
-                elif prediksi_lokasi[0] >= 26.3: # total panjang trunkline
-                    suspect_loct = 'Safe, there are no'
-                else:
-                    suspect_loct = f'!!!estimated  location {prediksi_lokasi[0]} KM'
-                st.success(suspect_loct)
-    except Exception as e:
-        st.error(f"Error predicting location: {e}")
+    predict_location()
+else:
+    st.error("Model tidak tersedia untuk melakukan prediksi.")
 
-# Execute the JavaScript to automatically click the button
-st.script(auto_click_script)
+# Automatic Prediction
+if st.button("Mulai Prediksi Otomatis"):
+    if LokasiKM is not None:
+        # Prediksi lokasi setiap 10 detik
+        st.set_interval(predict_location, 10)
+    else:
+        st.error("Model tidak tersedia untuk melakukan prediksi.")
