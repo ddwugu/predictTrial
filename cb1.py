@@ -47,14 +47,12 @@ else:
 Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else None
 Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else None
 
-# Isi nilai kosong atau NaN dengan nilai sebelumnya
-Titik_1_PSI = Titik_1_PSI.fillna(method='ffill') if pd.isnull(Titik_1_PSI) else Titik_1_PSI
-Titik_2_PSI = Titik_2_PSI.fillna(method='ffill') if pd.isnull(Titik_2_PSI) else Titik_2_PSI
-
 # Menampilkan nilai "Titik_1_PSI" dan "Titik_2_PSI"
 if Titik_1_PSI is not None and Titik_2_PSI is not None:
     st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
     st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+else:
+    st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
 
 # Code prediction
 suspect_loct = ''
@@ -73,16 +71,20 @@ document.addEventListener("DOMContentLoaded", function() {
 if LokasiKM is not None:
     try:
         if st.button('Prediksi Lokasi', key='predict_button'):
-            a = 135 - float(Titik_1_PSI)
-            b = 86 - float(Titik_2_PSI)
-            prediksi_lokasi = LokasiKM.predict([[a, b]])
-            if prediksi_lokasi[0] == 0: # titik nol
-                suspect_loct = 'It is safe that there is no fluid flowing'
-            elif prediksi_lokasi[0] >= 26.3: # total panjang trunkline
-                suspect_loct = 'Safe, there are no'
+            # Cek jika Titik_1_PSI atau Titik_2_PSI adalah nilai kosong atau NaN
+            if pd.isnull(Titik_1_PSI) or pd.isnull(Titik_2_PSI):
+                st.warning("Salah satu atau kedua nilai 'Titik_1_PSI' dan 'Titik_2_PSI' kosong atau NaN.")
             else:
-                suspect_loct = f'!!!estimated location {prediksi_lokasi[0]} KM'
-            st.success(suspect_loct)
+                a = 135 - float(Titik_1_PSI)
+                b = 86 - float(Titik_2_PSI)
+                prediksi_lokasi = LokasiKM.predict([[a, b]])
+                if prediksi_lokasi[0] == 0: # titik nol
+                    suspect_loct = 'It is safe that there is no fluid flowing'
+                elif prediksi_lokasi[0] >= 26.3: # total panjang trunkline
+                    suspect_loct = 'Safe, there are no'
+                else:
+                    suspect_loct = f'!!!estimated  location {prediksi_lokasi[0]} KM'
+                st.success(suspect_loct)
     except Exception as e:
         st.error(f"Error predicting location: {e}")
 
