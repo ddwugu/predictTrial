@@ -79,9 +79,9 @@ if LokasiKM is not None:
             if prediksi_lokasi[0] == 0: # titik nol
                 suspect_loct = 'It is safe that there is no fluid flowing'
             elif prediksi_lokasi[0] >= 26.3: # total panjang trunkline
-                suspect_loct = 'Safe, there are no leaks'
+                suspect_loct = 'Safe, there are no'
             else:
-                suspect_loct = f'!!!estimated leak location {prediksi_lokasi[0]} KM'
+                suspect_loct = f'!!!estimated location {prediksi_lokasi[0]} KM'
             st.success(suspect_loct)
     except Exception as e:
         st.error(f"Error predicting location: {e}")
