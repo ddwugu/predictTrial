@@ -47,10 +47,25 @@ else:
 Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else None
 Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else None
 
+# Menampilkan nilai "Titik_1_PSI" dan "Titik_2_PSI"
+if Titik_1_PSI is not None and Titik_2_PSI is not None:
+    st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
+    st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+
 # Code prediction
 suspect_loct = ''
 
-# Prediction Button
+# JavaScript to automatically click the "Prediksi Lokasi" button
+auto_click_script = """
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const button = document.querySelector("button[data-testid='stStreamlitButton']");
+    button.click();
+});
+</script>
+"""
+
+# Prediction Button (hidden)
 if LokasiKM is not None and Titik_1_PSI is not None and Titik_2_PSI is not None:
     try:
         a = 135 - float(Titik_1_PSI)
@@ -69,3 +84,6 @@ if LokasiKM is not None and Titik_1_PSI is not None and Titik_2_PSI is not None:
                 st.warning("Masukkan tekanan yang valid untuk kedua titik.")
     except Exception as e:
         st.error(f"Error predicting location: {e}")
+
+# Execute the JavaScript to automatically click the button
+st.script(auto_click_script)
