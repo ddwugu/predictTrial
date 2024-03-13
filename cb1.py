@@ -75,4 +75,3 @@ while True:
     else:
         placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
     st.write("---")
-edit syntax tersebut dengan menampilkan nilai dari variabel  'Titik_1_PSI' atau 'Titik_2_PSI' sesuai dengan loop pada predict_location
