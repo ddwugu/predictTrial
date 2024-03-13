@@ -51,6 +51,8 @@ Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else None
 if Titik_1_PSI is not None and Titik_2_PSI is not None:
     st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
     st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+else:
+    st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
 
 # Code prediction
 suspect_loct = ''
@@ -66,12 +68,15 @@ document.addEventListener("DOMContentLoaded", function() {
 """
 
 # Prediction Button (hidden)
-if LokasiKM is not None and Titik_1_PSI is not None and Titik_2_PSI is not None:
+if LokasiKM is not None:
     try:
-        a = 135 - float(Titik_1_PSI)
-        b = 86 - float(Titik_2_PSI)
         if st.button('Prediksi Lokasi', key='predict_button'):
-            if a is not None and b is not None:
+            # Cek jika Titik_1_PSI atau Titik_2_PSI adalah nilai kosong atau NaN
+            if pd.isnull(Titik_1_PSI) or pd.isnull(Titik_2_PSI):
+                st.warning("Salah satu atau kedua nilai 'Titik_1_PSI' dan 'Titik_2_PSI' kosong atau NaN.")
+            else:
+                a = 135 - float(Titik_1_PSI)
+                b = 86 - float(Titik_2_PSI)
                 prediksi_lokasi = LokasiKM.predict([[a, b]])
                 if prediksi_lokasi[0] == 0: # titik nol
                     suspect_loct = 'It is safe that there is no fluid flowing'
@@ -80,8 +85,6 @@ if LokasiKM is not None and Titik_1_PSI is not None and Titik_2_PSI is not None:
                 else:
                     suspect_loct = f'!!!estimated leak location {prediksi_lokasi[0]} KM'
                 st.success(suspect_loct)
-            else:
-                st.warning("Masukkan tekanan yang valid untuk kedua titik.")
     except Exception as e:
         st.error(f"Error predicting location: {e}")
 
