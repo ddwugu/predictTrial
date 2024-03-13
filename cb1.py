@@ -43,8 +43,7 @@ def fetch_data():
         return None, None
 
 # Code prediction
-def predict_location():
-    Titik_1_PSI, Titik_2_PSI = fetch_data()
+def predict_location(Titik_1_PSI, Titik_2_PSI):
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
         try:
             a = 135 - float(Titik_1_PSI)
@@ -70,14 +69,17 @@ else:
 
 # Prediction Button
 if LokasiKM is not None:
-    predict_location()
+    if st.button('Prediksi Lokasi'):
+        predict_location(Titik_1_PSI, Titik_2_PSI)
 else:
     st.error("Model tidak tersedia untuk melakukan prediksi.")
 
-# Automatic Prediction
-if st.button("Mulai Prediksi Otomatis"):
-    if LokasiKM is not None:
-        # Prediksi lokasi setiap 10 detik
-        st.set_interval(predict_location, 10)
-    else:
-        st.error("Model tidak tersedia untuk melakukan prediksi.")
+# Automatic Prediction Checkbox
+auto_predict = st.checkbox("Mulai Prediksi Otomatis")
+if auto_predict:
+    while auto_predict:
+        if LokasiKM is not None:
+            predict_location(Titik_1_PSI, Titik_2_PSI)
+        else:
+            st.error("Model tidak tersedia untuk melakukan prediksi.")
+        auto_predict = st.checkbox("Mulai Prediksi Otomatis", True)
