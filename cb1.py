@@ -1,5 +1,7 @@
 import pickle
 import streamlit as st
+import requests
+import pandas as pd
 
 # Load the model
 try:
@@ -12,10 +14,6 @@ except Exception as e:
 # Web Title
 st.title('Pertamina Field Jambi')
 st.subheader('Prediksi Lokasi Kebocoran Line BJG-TPN')
-
-# User Inputs
-import requests
-import pandas as pd
 
 # Masukkan API key dan Channel ID
 READ_API_KEY = 'SPYMD6ONS3YT6HKN'
@@ -41,6 +39,14 @@ def fetch_data():
         return Titik_1_PSI, Titik_2_PSI
     else:
         return None, None
+
+# Initial fetch and display of data
+Titik_1_PSI, Titik_2_PSI = fetch_data()
+if Titik_1_PSI is not None and Titik_2_PSI is not None:
+    st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
+    st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+else:
+    st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
 
 # Function to predict location
 def predict_location(Titik_1_PSI, Titik_2_PSI):
@@ -73,5 +79,4 @@ while True:
         location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
         placeholder.write(location_prediction)
     else:
-        placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
-    st.write("---")
+        placeholder.warning("Nilai 'Titik_
