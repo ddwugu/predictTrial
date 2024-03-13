@@ -1,8 +1,5 @@
 import pickle
 import streamlit as st
-import requests
-import pandas as pd
-import time
 
 # Load the model
 try:
@@ -16,20 +13,24 @@ except Exception as e:
 st.title('Pertamina Field Jambi')
 st.subheader('Prediksi Lokasi Kebocoran Line BJG-TPN')
 
+# User Inputs
+import requests
+import pandas as pd
+
 # Masukkan API key dan Channel ID
 READ_API_KEY = 'SPYMD6ONS3YT6HKN'
 CHANNEL_ID = '2405457'
 FIELD_ID_1 = '1'
 FIELD_ID_2 = '3'
 
+# URL untuk mengakses data dari ThingSpeak untuk field 1
+url_field_1 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_1}.csv?api_key={READ_API_KEY}'
+
+# URL untuk mengakses data dari ThingSpeak untuk field 2
+url_field_2 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_2}.csv?api_key={READ_API_KEY}'
+
 # Function to fetch data
 def fetch_data():
-    # URL untuk mengakses data dari ThingSpeak untuk field 1
-    url_field_1 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_1}.csv?api_key={READ_API_KEY}'
-
-    # URL untuk mengakses data dari ThingSpeak untuk field 2
-    url_field_2 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_2}.csv?api_key={READ_API_KEY}'
-    
     response_field_1 = requests.get(url_field_1)
     response_field_2 = requests.get(url_field_2)
     if response_field_1.status_code == 200 and response_field_2.status_code == 200:
@@ -41,17 +42,9 @@ def fetch_data():
     else:
         return None, None
 
-# Placeholder for real-time updates
-placeholder = st.empty()
-
-# Continuously update the predictions
-while True:
-    Titik_1_PSI, Titik_2_PSI = fetch_data()
+# Function to predict location
+def predict_location(Titik_1_PSI, Titik_2_PSI):
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
-        placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
-        placeholder.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
-        
-        # Prediction
         try:
             a = 135 - float(Titik_1_PSI)
             b = 86 - float(Titik_2_PSI)
@@ -62,14 +55,23 @@ while True:
                 suspect_loct = 'Safe, there are no'
             else:
                 suspect_loct = f'!!!estimated  location {prediksi_lokasi[0]} KM'
-            placeholder.write(suspect_loct)
+            return suspect_loct
         except Exception as e:
-            placeholder.error(f"Error predicting location: {e}")
-        
-        # Delay for 10 seconds
-        time.sleep(10)
+            return f"Error predicting location: {e}"
+    else:
+        return "Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada."
+
+# Placeholder for real-time updates
+placeholder = st.empty()
+
+# Continuously update the predictions
+while True:
+    Titik_1_PSI, Titik_2_PSI = fetch_data()
+    if Titik_1_PSI is not None and Titik_2_PSI is not None:
+        placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
+        placeholder.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+        location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
+        placeholder.write(location_prediction)
     else:
         placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
-        # Delay for 10 seconds
-        time.sleep(10)
     st.write("---")
