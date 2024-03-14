@@ -74,4 +74,4 @@ while True:
         placeholder.write(location_prediction)
     else:
         placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
-    st.write("---")
+   
