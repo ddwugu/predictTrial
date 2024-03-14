@@ -75,7 +75,7 @@ while True:
     # If both values are not None, update the placeholder
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
         # Clear placeholder
-        placeholder.empty()
+   
 
         # Write new values to placeholder
         placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
