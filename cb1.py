@@ -64,8 +64,8 @@ def predict_location(Titik_1_PSI, Titik_2_PSI):
 placeholder = st.empty()
 
 # Initial values for Titik_1_PSI and Titik_2_PSI
-prev_Titik_1_PSI = None
-prev_Titik_2_PSI = None
+prev_Titik_1_PSI = 134
+prev_Titik_2_PSI = 85
 
 # Continuously update the predictions
 while True:
@@ -75,7 +75,7 @@ while True:
     # If both values are not None, update the placeholder
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
         # Clear placeholder
-   
+        placeholder = st.empty()
 
         # Write new values to placeholder
         placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
