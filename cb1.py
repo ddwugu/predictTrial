@@ -68,10 +68,9 @@ placeholder = st.empty()
 while True:
     Titik_1_PSI, Titik_2_PSI = fetch_data()
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
-        placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
-        placeholder.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+        st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
+        st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
         location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
-        placeholder.write(location_prediction)
+        st.write(location_prediction)
     else:
-        placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
-   
+        st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
