@@ -2,7 +2,7 @@ import pickle
 import streamlit as st
 import requests
 import pandas as pd
-import time  # Import the time module
+
 
 # Load the model
 try:
@@ -97,5 +97,4 @@ while True:
     location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
     placeholder.write(location_prediction)
 
-    # Delay for 6 seconds
-    time.sleep(6)
+   
