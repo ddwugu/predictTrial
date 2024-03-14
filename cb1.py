@@ -1,80 +1,37 @@
-import pickle
 import streamlit as st
 import requests
-import pandas as pd
 
-# Load the model
-try:
-    with open('Pred_lokasi11.sav', 'rb') as file:
-        LokasiKM = pickle.load(file)
-except Exception as e:
-    st.error(f"Error loading the model: {e}")
-    LokasiKM = None  # Assign None if there is an error loading the model
-
-# Web Title
+# Set the title and subheader
 st.title('Pertamina Field Jambi')
-st.subheader('Prediksi Lokasi Kebocoran Line BJG-TPN')
+st.subheader('Monitoring Pressure')
 
 # User Inputs
 READ_API_KEY = 'SPYMD6ONS3YT6HKN'
 CHANNEL_ID = '2405457'
-FIELD_ID_1 = '1'
-FIELD_ID_2 = '3'
 
-# URL untuk mengakses data dari ThingSpeak untuk field 1
-url_field_1 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_1}.csv?api_key={READ_API_KEY}'
+# Define the URLs for fetching data from ThingSpeak
+field_ids = ['1', '2', '3', '4', '5', '6']
+url_base = 'https://api.thingspeak.com/channels/{}/fields/{}.json?api_key={}'
+urls = [url_base.format(CHANNEL_ID, field_id, READ_API_KEY) for field_id in field_ids]
 
-# URL untuk mengakses data dari ThingSpeak untuk field 2
-url_field_2 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_2}.csv?api_key={READ_API_KEY}'
-
-# Function to fetch data
-def fetch_data(prev_Titik_1_PSI, prev_Titik_2_PSI):
-    response_field_1 = requests.get(url_field_1)
-    response_field_2 = requests.get(url_field_2)
-    if response_field_1.status_code == 200 and response_field_2.status_code == 200:
-        data_field_1 = pd.read_csv(url_field_1)
-        data_field_2 = pd.read_csv(url_field_2)
-        Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else prev_Titik_1_PSI
-        Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else prev_Titik_2_PSI
-        return Titik_1_PSI, Titik_2_PSI
+# Function to fetch latest data for each field
+def fetch_data(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data['feeds'][0]['field' + data['feeds'][0]['field'].split('field')[-1]], data['feeds'][0]['created_at']
     else:
-        return prev_Titik_1_PSI, prev_Titik_2_PSI
+        return None, None
 
-# Function to predict location
-def predict_location(Titik_1_PSI, Titik_2_PSI):
-    if Titik_1_PSI is not None and Titik_2_PSI is not None:
-        try:
-            a = 135 - float(Titik_1_PSI)
-            b = 86 - float(Titik_2_PSI)
-            prediksi_lokasi = LokasiKM.predict([[a, b]])
-            if prediksi_lokasi[0] == 0: # titik nol
-                suspect_loct = 'It is safe that there is no fluid flowing'
-            elif prediksi_lokasi[0] >= 26.3: # total panjang trunkline
-                suspect_loct = 'Safe, there are no'
-            else:
-                suspect_loct = f'!!!estimated  location {prediksi_lokasi[0]} KM'
-            return suspect_loct
-        except Exception as e:
-            return f"Error predicting location: {e}"
+# Display gauges for each field
+for i, url in enumerate(urls, start=1):
+    value, timestamp = fetch_data(url)
+    if value is not None:
+        st.subheader(f'Field {i}')
+        st.text(f'Last updated: {timestamp}')
+        st.text(f'Current value: {value}')
+        # Customize min and max values as needed
+        st.gauge(f'Pressure ({value})', min_value=0, max_value=100, current_value=float(value))
     else:
-        return "Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada."
+        st.warning(f"Failed to fetch data for Field {i}")
 
-# Placeholder for real-time updates
-placeholder = st.empty()
-
-# Initialize previous values
-prev_Titik_1_PSI = None
-prev_Titik_2_PSI = None
-
-# Continuously update the predictions
-while True:
-    Titik_1_PSI, Titik_2_PSI = fetch_data(prev_Titik_1_PSI, prev_Titik_2_PSI)
-    if Titik_1_PSI is not None and Titik_2_PSI is not None:
-        prev_Titik_1_PSI = Titik_1_PSI
-        prev_Titik_2_PSI = Titik_2_PSI
-        st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
-        st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
-        location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
-        st.write(location_prediction)
-    else:
-        placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
