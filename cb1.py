@@ -1,7 +1,5 @@
 import pickle
 import streamlit as st
-import requests
-import pandas as pd
 
 # Load the model
 try:
@@ -14,6 +12,10 @@ except Exception as e:
 # Web Title
 st.title('Pertamina Field Jambi')
 st.subheader('Prediksi Lokasi Kebocoran Line BJG-TPN')
+
+# User Inputs
+import requests
+import pandas as pd
 
 # Masukkan API key dan Channel ID
 READ_API_KEY = 'SPYMD6ONS3YT6HKN'
@@ -62,28 +64,12 @@ def predict_location(Titik_1_PSI, Titik_2_PSI):
 # Placeholder for real-time updates
 placeholder = st.empty()
 
-# Menyimpan nilai sebelumnya untuk digunakan jika nilai saat ini kosong
-previous_Titik_1_PSI = None
-previous_Titik_2_PSI = None
-
 # Continuously update the predictions
 while True:
     Titik_1_PSI, Titik_2_PSI = fetch_data()
-    
-    # Menggunakan nilai sebelumnya jika nilai saat ini kosong
-    if Titik_1_PSI is None:
-        Titik_1_PSI = previous_Titik_1_PSI
-    if Titik_2_PSI is None:
-        Titik_2_PSI = previous_Titik_2_PSI
-    
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
         st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
         st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
-        
-        # Menyimpan nilai saat ini untuk digunakan pada iterasi berikutnya
-        previous_Titik_1_PSI = Titik_1_PSI
-        previous_Titik_2_PSI = Titik_2_PSI
-        
         location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
         st.write(location_prediction)
     else:
