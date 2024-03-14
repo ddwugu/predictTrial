@@ -62,7 +62,7 @@ def predict_location(Titik_1_PSI, Titik_2_PSI):
 # Placeholder for real-time updates
 placeholder = st.empty()
 
-# Menyimpan nilai sebelumnya untuk digunakan jika nilai saat ini NaN
+# Menyimpan nilai sebelumnya untuk digunakan jika nilai saat ini kosong
 previous_Titik_1_PSI = None
 previous_Titik_2_PSI = None
 
@@ -70,12 +70,10 @@ previous_Titik_2_PSI = None
 while True:
     Titik_1_PSI, Titik_2_PSI = fetch_data()
     
-    # Check if Titik_1_PSI is NaN (kosong), jika iya, gunakan nilai sebelumnya
-    if pd.isna(Titik_1_PSI):
+    # Menggunakan nilai sebelumnya jika nilai saat ini kosong
+    if Titik_1_PSI is None:
         Titik_1_PSI = previous_Titik_1_PSI
-        
-    # Check if Titik_2_PSI is NaN (kosong), jika iya, gunakan nilai sebelumnya
-    if pd.isna(Titik_2_PSI):
+    if Titik_2_PSI is None:
         Titik_2_PSI = previous_Titik_2_PSI
     
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
