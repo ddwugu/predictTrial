@@ -3,7 +3,6 @@ import streamlit as st
 import requests
 import pandas as pd
 
-
 # Load the model
 try:
     with open('Pred_lokasi11.sav', 'rb') as file:
@@ -16,7 +15,7 @@ except Exception as e:
 st.title('Pertamina Field Jambi')
 st.subheader('Prediksi Lokasi Kebocoran Line BJG-TPN')
 
-# Masukkan API key dan Channel ID
+# User Inputs
 READ_API_KEY = 'SPYMD6ONS3YT6HKN'
 CHANNEL_ID = '2405457'
 FIELD_ID_1 = '1'
@@ -29,17 +28,17 @@ url_field_1 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_I
 url_field_2 = f'https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/{FIELD_ID_2}.csv?api_key={READ_API_KEY}'
 
 # Function to fetch data
-def fetch_data():
+def fetch_data(prev_Titik_1_PSI, prev_Titik_2_PSI):
     response_field_1 = requests.get(url_field_1)
     response_field_2 = requests.get(url_field_2)
     if response_field_1.status_code == 200 and response_field_2.status_code == 200:
         data_field_1 = pd.read_csv(url_field_1)
         data_field_2 = pd.read_csv(url_field_2)
-        Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else None
-        Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else None
+        Titik_1_PSI = data_field_1['field1'].iloc[0] if not data_field_1.empty else prev_Titik_1_PSI
+        Titik_2_PSI = data_field_2['field3'].iloc[0] if not data_field_2.empty else prev_Titik_2_PSI
         return Titik_1_PSI, Titik_2_PSI
     else:
-        return None, None
+        return prev_Titik_1_PSI, prev_Titik_2_PSI
 
 # Function to predict location
 def predict_location(Titik_1_PSI, Titik_2_PSI):
@@ -63,38 +62,19 @@ def predict_location(Titik_1_PSI, Titik_2_PSI):
 # Placeholder for real-time updates
 placeholder = st.empty()
 
-# Initial values for Titik_1_PSI and Titik_2_PSI
-prev_Titik_1_PSI = 134
-prev_Titik_2_PSI = 85
+# Initialize previous values
+prev_Titik_1_PSI = None
+prev_Titik_2_PSI = None
 
 # Continuously update the predictions
 while True:
-    # Fetch data
-    Titik_1_PSI, Titik_2_PSI = fetch_data()
-
-    # If both values are not None, update the placeholder
+    Titik_1_PSI, Titik_2_PSI = fetch_data(prev_Titik_1_PSI, prev_Titik_2_PSI)
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
-        # Clear placeholder
-        placeholder = st.empty()
-
-        # Write new values to placeholder
-        placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
-        placeholder.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
-
-        # Update previous values
         prev_Titik_1_PSI = Titik_1_PSI
         prev_Titik_2_PSI = Titik_2_PSI
+        st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
+        st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+        location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
+        st.write(location_prediction)
     else:
-        # If any value is None, use previous values
-        if prev_Titik_1_PSI is not None and prev_Titik_2_PSI is not None:
-            Titik_1_PSI = prev_Titik_1_PSI
-            Titik_2_PSI = prev_Titik_2_PSI
-        else:
-            # If previous values are also None, show warning
-            st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
-
-    # Predict location
-    location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
-    placeholder.write(location_prediction)
-
-   
+        placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
