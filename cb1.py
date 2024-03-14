@@ -1,5 +1,8 @@
 import pickle
 import streamlit as st
+import requests
+import pandas as pd
+import time  # Import the time module
 
 # Load the model
 try:
@@ -12,10 +15,6 @@ except Exception as e:
 # Web Title
 st.title('Pertamina Field Jambi')
 st.subheader('Prediksi Lokasi Kebocoran Line BJG-TPN')
-
-# User Inputs
-import requests
-import pandas as pd
 
 # Masukkan API key dan Channel ID
 READ_API_KEY = 'SPYMD6ONS3YT6HKN'
@@ -64,14 +63,39 @@ def predict_location(Titik_1_PSI, Titik_2_PSI):
 # Placeholder for real-time updates
 placeholder = st.empty()
 
+# Initial values for Titik_1_PSI and Titik_2_PSI
+prev_Titik_1_PSI = None
+prev_Titik_2_PSI = None
+
 # Continuously update the predictions
 while True:
+    # Fetch data
     Titik_1_PSI, Titik_2_PSI = fetch_data()
+
+    # If both values are not None, update the placeholder
     if Titik_1_PSI is not None and Titik_2_PSI is not None:
-        st.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
-        st.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
-        location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
-        st.write(location_prediction)
+        # Clear placeholder
+        placeholder.empty()
+
+        # Write new values to placeholder
+        placeholder.write(f'Nilai Titik_1_PSI: {Titik_1_PSI}')
+        placeholder.write(f'Nilai Titik_2_PSI: {Titik_2_PSI}')
+
+        # Update previous values
+        prev_Titik_1_PSI = Titik_1_PSI
+        prev_Titik_2_PSI = Titik_2_PSI
     else:
-        placeholder.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
-   
+        # If any value is None, use previous values
+        if prev_Titik_1_PSI is not None and prev_Titik_2_PSI is not None:
+            Titik_1_PSI = prev_Titik_1_PSI
+            Titik_2_PSI = prev_Titik_2_PSI
+        else:
+            # If previous values are also None, show warning
+            st.warning("Nilai 'Titik_1_PSI' atau 'Titik_2_PSI' tidak tersedia, menggunakan nilai sebelumnya jika ada.")
+
+    # Predict location
+    location_prediction = predict_location(Titik_1_PSI, Titik_2_PSI)
+    placeholder.write(location_prediction)
+
+    # Delay for 6 seconds
+    time.sleep(6)
